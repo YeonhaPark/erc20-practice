@@ -8,7 +8,7 @@
   }
 
   .box-style {
-    @apply bg-white rounded-xl text-lg font-semibold py-3 px-6;
+    @apply bg-red-100 rounded-xl text-lg font-semibold py-3 px-6 shadow-md;
   }
 
   .label-style {
@@ -16,6 +16,6 @@
   }
 
   .input-style {
-    @apply bg-white rounded-xl text-lg font-semibold flex grow py-3 px-6;
+    @apply bg-white rounded-xl text-lg font-semibold flex grow py-3 px-6 shadow-sm border border-gray-200;
   }
 }

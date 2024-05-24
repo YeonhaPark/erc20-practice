@@ -1,41 +1,61 @@
-import { ethers } from "ethers";
-import { useState } from "react";
-const App = () => {
-  const [signer, setSigner] = useState();
-  const onClickMetamask = async () => {
-    try {
-      if (!window.ethereum) return;
+import { useEffect, useState } from "react";
+import MetamaskButton from "./components/MetamaskButton";
+import Erc20Connect from "./components/Erc20Connect";
+import { Contract } from "ethers";
+import abi from "./abi.json";
+import Balance from "./components/Balance";
+import Transfer from "./components/Transfer";
 
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      setSigner(await provider.getSigner());
-      console.log(provider);
+const App = () => {
+  const [contract, setContract] = useState("");
+  const [contractAddress, setContractAddress] = useState("");
+  const [signer, setSigner] = useState();
+  const [info, setInfo] = useState({ name: "", symbol: "" });
+  const [balance, setBalance] = useState();
+
+  const onClickConnect = () => {
+    if (!signer || !contractAddress) return;
+    setContract(new Contract(contractAddress, abi, signer));
+  };
+  const getNameSymbol = async () => {
+    try {
+      const response = [await contract.name(), await contract.symbol()];
+      setInfo({ name: response[0], symbol: response[1] });
     } catch (error) {
       console.error(error);
     }
   };
+  useEffect(() => {
+    if (!contract) {
+      return;
+    }
+    getNameSymbol();
+  }, [contract]);
 
-  const onClickLogout = () => {
-    setSigner(null);
-  };
   return (
     <div className="min-h-screen flex flex-col justify-start items-center py-16">
-      {signer ? (
-        <div className="flex gap-8">
-          <div className="box-style">{`${signer.address.slice(
-            0,
-            7
-          )}...${signer.address.slice(signer.address.length - 5)}`}</div>
-          <button
-            onClick={onClickLogout}
-            className="button-style border-red-200 hover:border-red-300"
-          >
-            로그아웃
-          </button>
+      <MetamaskButton signer={signer} setSigner={setSigner} />
+      {signer && (
+        <div className="mt-16 flex flex-col gap-8 grow max-w-lg w-full">
+          <Erc20Connect
+            signer={signer}
+            contract={contract}
+            onClickConnect={onClickConnect}
+            contractAddress={contractAddress}
+            setContractAddress={setContractAddress}
+            info={info}
+          />
+          {contract && (
+            <Balance
+              getNameSymbol={getNameSymbol}
+              contract={contract}
+              info={info}
+              balance={balance}
+              setBalance={setBalance}
+            />
+          )}
+          {info.name && <Transfer contract={contract} info={info} />}
         </div>
-      ) : (
-        <button className="button-style" onClick={onClickMetamask}>
-          🦊 메타마스크 로그인
-        </button>
       )}
     </div>
   );
